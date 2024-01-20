@@ -46,28 +46,31 @@ export const POST = async (req) => {
   }
 };
 
-// export const GET = async () => {
-//   try {
-//     const response = await prisma.user.findMany({
-//       select: {
-//         id: true,
-//         username: true,
-//         score: true,
-//       },
-//       orderBy: {
-//         score: 'desc',
-//       },
-//     });
+export const GET = async () => {
+  try {
+    const response = await prisma.user.findMany({
+      include: {
+        Column: {
+          include: {
+            Task: true,
+          },
+        },
+      },
+    });
 
-//     return NextResponse.json(
-//       { message: 'GET user success', data: response },
-//       { status: 200 }
-//     );
-//   } catch (error) {
-//     console.error(error);
-//     return NextResponse.json(
-//       { message: 'GET user failed', error: error },
-//       { status: 500 }
-//     );
-//   }
-// };
+    const users = response.map((user) => {
+      const { password, ...userData } = user;
+      return userData;
+    });
+    return NextResponse.json(
+      { message: 'GET user success', data: users },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json(
+      { message: 'GET user failed', error: error },
+      { status: 500 }
+    );
+  }
+};

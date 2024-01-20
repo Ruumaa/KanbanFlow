@@ -14,8 +14,12 @@ const ColumnContainer = ({
   tasks,
   deleteTask,
   updateTask,
+  loading,
 }) => {
+  // console.log(tasks, '!!!!!');
   const [editMode, setEditMode] = useState(false);
+  const [savedValue, setSavedValue] = useState(column.title);
+
   const tasksIds = useMemo(() => {
     return tasks.map((task) => task.id);
   }, [tasks]);
@@ -62,7 +66,6 @@ const ColumnContainer = ({
       <div
         {...attributes}
         {...listeners}
-        onClick={() => setEditMode(true)}
         className="text-md cursor-grab rounded-md bg-stone-800 h-14 p-3 font-bold border-slate-700 border-4 flex justify-between items-center z-10"
       >
         <div className="flex gap-3">
@@ -72,30 +75,42 @@ const ColumnContainer = ({
           {editMode ? (
             <>
               <input
-                value={column.title}
-                onChange={(e) => updateColumn(column.id, e.target.value)}
+                value={savedValue}
+                onChange={(e) => setSavedValue(e.target.value)}
                 autoFocus
                 onBlur={() => {
+                  updateColumn(column.id, savedValue);
                   setEditMode(false);
                 }}
                 onKeyDown={(e) => {
                   if (e.key !== 'Enter') return;
+                  updateColumn(column.id, savedValue);
                   setEditMode(false);
                 }}
                 className="input input-sm w-2/3 border-indigo-700 focus:border-indigo-700 focus:border-2"
               />
             </>
           ) : (
-            column.title
+            <div onClick={() => setEditMode(true)} className="cursor-text">
+              {column.title}
+            </div>
           )}
         </div>
         <button
           onClick={() => deleteColumn(column.id)}
+          disabled={loading.delete}
           className="btn btn-ghost btn-sm  text-red-600 cursor-pointer hover:text-red-700 z-30
            "
           title="Delete Column"
         >
-          <FaRegTrashCan size={18} />
+          {loading.delete ? (
+            <div className="flex items-center gap-3">
+              <span className="loading loading-spinner loading-sm text-indigo-700"></span>
+              Deleting
+            </div>
+          ) : (
+            <FaRegTrashCan size={18} />
+          )}
         </button>
       </div>
       {/* column task container */}

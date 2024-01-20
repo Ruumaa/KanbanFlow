@@ -8,6 +8,7 @@ import { CSS } from '@dnd-kit/utilities';
 const TaskCard = ({ task, deleteTask, updateTask }) => {
   const [mouseIsOver, setMouseIsOver] = useState(false);
   const [editMode, setEditMode] = useState(false);
+  const [savedValue, setSavedValue] = useState(task.content);
 
   const {
     setNodeRef,
@@ -31,6 +32,7 @@ const TaskCard = ({ task, deleteTask, updateTask }) => {
   };
   const toggleEditMode = () => {
     setEditMode((prev) => !prev);
+    updateTask(task.id, savedValue);
     setMouseIsOver(false);
   };
 
@@ -55,14 +57,14 @@ const TaskCard = ({ task, deleteTask, updateTask }) => {
       >
         <textarea
           className="w-full h-[90%] resize-none bg-transparent rounded text-white border-none focus:outline-none"
-          value={task.content}
+          value={savedValue}
           autoFocus
           placeholder="Task content here"
           onBlur={toggleEditMode}
           onKeyDown={(e) => {
             if (e.key === 'Enter' && e.shiftKey) toggleEditMode();
           }}
-          onChange={(e) => updateTask(task.id, e.target.value)}
+          onChange={(e) => setSavedValue(e.target.value)}
         ></textarea>
       </div>
     );

@@ -21,7 +21,7 @@ const Nav = async () => {
             </div>
           </Link>
           <div className="flex mr-3">
-            <HandleLogout user={session.user} />
+            <HandleLogout />
           </div>
         </div>
       )}

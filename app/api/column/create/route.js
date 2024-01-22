@@ -10,6 +10,7 @@ export const POST = async (req) => {
         id: generateId(),
         title: body.title,
         userId: body.userId,
+        columnIndex: body.columnIndex,
       },
     });
     return NextResponse.json(

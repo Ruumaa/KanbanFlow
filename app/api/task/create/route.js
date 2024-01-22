@@ -4,12 +4,13 @@ import { NextResponse } from 'next/server';
 
 export const POST = async (req) => {
   try {
-    const { content, columnId } = await req.json();
+    const body = await req.json();
+    console.log(body);
     const response = await prisma.task.create({
       data: {
         id: generateId(),
-        content,
-        columnId,
+        content: body.content,
+        columnId: body.columnId,
       },
     });
     return NextResponse.json(

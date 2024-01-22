@@ -32,10 +32,13 @@ const KanbanBoard = ({ user }) => {
     newColumn: false,
     delete: false,
     update: false,
+    newTask: false,
+    deleteTask: false,
+    updateTask: false,
   });
   const [columns, setColumns] = useState([]);
   const [updateFlag, setUpdateFlag] = useState(false);
-  const columnsId = useMemo(() => columns.map((col) => col.id), [columns]);
+  const columnsId = useMemo(() => columns?.map((col) => col.id), [columns]);
   const [activeColumn, setActiveColumn] = useState(null);
   const [mounted, setMounted] = useState(false);
   const [tasks, setTasks] = useState([]);
@@ -46,7 +49,7 @@ const KanbanBoard = ({ user }) => {
       try {
         const response = await fetch('/api/column', { cache: 'no-store' });
         const result = await response.json();
-        setColumns(result.data);
+        setColumns(result?.data);
       } catch (error) {
         console.error('Error when getColumnData', error);
       }
@@ -54,16 +57,17 @@ const KanbanBoard = ({ user }) => {
 
     const getTasksData = async () => {
       try {
-        const response = await fetchGetTasks();
-        // console.log(response.data);
-        setTasks(response.data);
+        const response = await fetch('/api/task', { cache: 'no-store' });
+        const result = await response.json();
+        setTasks(result.data);
       } catch (error) {
         console.error('Error when getTasks');
       }
     };
 
-    // setMounted(true);
+    setMounted(true);
     console.log('Column updated');
+
     getColumnData();
     getTasksData();
     setUpdateFlag(false);
@@ -74,7 +78,7 @@ const KanbanBoard = ({ user }) => {
     try {
       setLoading((prevLoading) => ({ ...prevLoading, newColumn: true }));
       const columnToAdd = {
-        title: `Column ${columns.length + 1}`,
+        title: `Column ${columns?.length + 1}`,
         userId: user.id,
       };
       await createColumns(columnToAdd);
@@ -112,7 +116,7 @@ const KanbanBoard = ({ user }) => {
   const updateColumn = async (id, title) => {
     try {
       setLoading((prevLoading) => ({ ...prevLoading, update: true }));
-      await fetchUpdateColumn(id, title);
+      await fetchUpdateColumn({ id, title });
     } catch (error) {
       console.error('Error when updateColumn', error);
     } finally {
@@ -138,29 +142,60 @@ const KanbanBoard = ({ user }) => {
       return;
     }
   };
-
-  const onDragEnd = (event) => {
+  const onDragEnd = async (event) => {
     setActiveColumn(null);
     setActiveTask(null);
 
     const { active, over } = event;
+    // console.log(active, over);
     if (!over) return;
 
     const activeColumnId = active.id;
     const overColumnId = over.id;
 
-    if (activeColumn === overColumnId) return;
+    // console.log(activeColumnId, 'Idnya');
+    // console.log(overColumnId, 'idOvernya');
 
-    setColumns((columns) => {
-      const activeColumnIndex = columns.findIndex(
-        (col) => col.id === activeColumnId
-      );
-      const overColumnIndex = columns.findIndex(
-        (col) => col.id === overColumnId
-      );
-      return arrayMove(columns, activeColumnIndex, overColumnIndex);
+    if (activeColumnId === overColumnId) return;
+
+    // setUpdateFlag(true);
+
+    // finding activeColumn index
+    const activeColumnIndex = columns?.findIndex(
+      (col) => col.id === activeColumnId
+    );
+    const activeColumnIndexValue = columns[activeColumnIndex].columnIndex;
+    // finding overColumn index
+    const overColumnIndex = columns?.findIndex(
+      (col) => col.id === overColumnId
+    );
+    const overColumnIndexValue = columns[overColumnIndex].columnIndex;
+
+    await fetchUpdateColumn({
+      id: activeColumnId,
+      columnIndex: overColumnIndexValue,
     });
+    await fetchUpdateColumn({
+      id: overColumnId,
+      columnIndex: activeColumnIndexValue,
+    });
+    // console.log(activeColumnIndexValue, 'Index yang aktif');
+    // console.log(overColumnIndexValue, 'Index overnya');
+    // const activeColumnIndex2 = columns.map(
+    //   (column) => {const index = column.id === activeColumnId;
+    //   if(index){}
+    // }
+    // );
+    // const overColumnIndex2 = columns.map(
+    //   (column) => column.id === overColumnId
+    // );
+    // console.log(activeColumnIndex2, '<<<<<<<<<');
+    // console.log(overColumnIndex2, '<<<<<<<<<');
+    setUpdateFlag(true);
+    return arrayMove(columns, activeColumnIndexValue, overColumnIndexValue);
   };
+
+  // console.log(columns);
 
   const onDragOver = (event) => {
     const { active, over } = event;
@@ -213,14 +248,17 @@ const KanbanBoard = ({ user }) => {
   // create task
   const createTask = async (columnId) => {
     try {
+      setLoading((prevLoading) => ({ ...prevLoading, newTask: true }));
       const newTask = {
         columnId: columnId,
         content: `Task ${tasks.length + 1}`,
       };
       await fetchCreateTask(newTask);
-      setUpdateFlag(true);
     } catch (error) {
       console.error('Something wrong in createNewColumn', error);
+    } finally {
+      setUpdateFlag(true);
+      setLoading(false);
     }
 
     // const newTask = {
@@ -234,10 +272,13 @@ const KanbanBoard = ({ user }) => {
   // delete task
   const deleteTask = async (id) => {
     try {
+      setLoading((prevLoading) => ({ ...prevLoading, deleteTask: true }));
       await fetchDeleteTask(id);
-      setUpdateFlag(true);
     } catch (error) {
       console.error('Error when deleteTask', error);
+    } finally {
+      setUpdateFlag(true);
+      setLoading(false);
     }
 
     // const newTask = tasks.filter((task) => task.id !== id);
@@ -247,10 +288,13 @@ const KanbanBoard = ({ user }) => {
   // update task
   const updateTask = async (id, content) => {
     try {
+      setLoading((prevLoading) => ({ ...prevLoading, updateTask: true }));
       await fetchPatchTask(id, content);
-      setUpdateFlag(true);
     } catch (error) {
       console.error('Error when updateTask', error);
+    } finally {
+      setLoading(false);
+      setUpdateFlag(true);
     }
     // const updatedTask = tasks.map((task) => {
     //   if (task.id !== id) return task;
@@ -273,7 +317,7 @@ const KanbanBoard = ({ user }) => {
           <div className="m-auto flex gap-4">
             <div className="flex gap-4">
               <SortableContext items={columnsId}>
-                {columns.map((column) => (
+                {columns?.map((column) => (
                   <ColumnContainer
                     key={column.id}
                     column={column}
@@ -316,7 +360,6 @@ const KanbanBoard = ({ user }) => {
                       deleteTask={deleteTask}
                       updateTask={updateTask}
                       loading={loading}
-                      handleOnChange={handleOnChange}
                       tasks={tasks.filter(
                         (task) => task.columnId === activeColumn.id
                       )}

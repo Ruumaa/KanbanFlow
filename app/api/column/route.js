@@ -4,9 +4,12 @@ import { NextResponse } from 'next/server';
 export const GET = async () => {
   try {
     const response = await prisma.column.findMany({
-      include: {
-        Task: true,
+      orderBy: {
+        columnIndex: 'asc',
       },
+      // include: {
+      //   Task: true,
+      // },
     });
 
     return NextResponse.json(

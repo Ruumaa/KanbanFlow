@@ -21,16 +21,18 @@ model User {
 }
 
 model Column {
-  id     Int     @id
-  title  String
-  User   User?   @relation(fields: [userId], references: [id])
-  userId String?
-  Task   Task[]
+  id          Int     @id
+  title       String
+  User        User?   @relation(fields: [userId], references: [id])
+  userId      String?
+  columnIndex Int
+  Task        Task[]
 }
 
 model Task {
   id       Int    @id
   content  String
   columnId Int
+  // taskIndex Int
   column   Column @relation(fields: [columnId], references: [id])
 }

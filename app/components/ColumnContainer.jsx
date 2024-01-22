@@ -16,7 +16,7 @@ const ColumnContainer = ({
   updateTask,
   loading,
 }) => {
-  // console.log(tasks, '!!!!!');
+  // console.log(column, '!!!!!');
   const [editMode, setEditMode] = useState(false);
   const [savedValue, setSavedValue] = useState(column.title);
 
@@ -70,25 +70,32 @@ const ColumnContainer = ({
       >
         <div className="flex gap-3">
           <div className="flex justify-center items-center bg-slate-700 px-2 py-1 text-sm rounded-full">
-            0
+            {tasks.length}
           </div>
           {editMode ? (
             <>
-              <input
-                value={savedValue}
-                onChange={(e) => setSavedValue(e.target.value)}
-                autoFocus
-                onBlur={() => {
-                  updateColumn(column.id, savedValue);
-                  setEditMode(false);
-                }}
-                onKeyDown={(e) => {
-                  if (e.key !== 'Enter') return;
-                  updateColumn(column.id, savedValue);
-                  setEditMode(false);
-                }}
-                className="input input-sm w-2/3 border-indigo-700 focus:border-indigo-700 focus:border-2"
-              />
+              {loading.updateColumn ? (
+                <div className="flex items-center gap-3">
+                  <span className="loading loading-spinner loading-sm text-indigo-700"></span>
+                  Updating...
+                </div>
+              ) : (
+                <input
+                  value={savedValue}
+                  onChange={(e) => setSavedValue(e.target.value)}
+                  autoFocus
+                  onBlur={() => {
+                    updateColumn(column.id, savedValue);
+                    setEditMode(false);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key !== 'Enter') return;
+                    updateColumn(column.id, savedValue);
+                    setEditMode(false);
+                  }}
+                  className="input input-sm w-2/3 border-indigo-700 focus:border-indigo-700 focus:border-2"
+                />
+              )}
             </>
           ) : (
             <div onClick={() => setEditMode(true)} className="cursor-text">
@@ -121,6 +128,7 @@ const ColumnContainer = ({
               task={task}
               deleteTask={deleteTask}
               updateTask={updateTask}
+              loading={loading}
             />
           </SortableContext>
         ))}
@@ -128,10 +136,20 @@ const ColumnContainer = ({
       {/* column footer */}
       <button
         onClick={() => createTask(column.id)}
+        disabled={loading.deleteTask}
         className="btn btn-ghost btn-sm group flex gap-2 items-center hover:ring-2 ring-indigo-700  hover:bg-stone-900"
       >
-        <CiCirclePlus size={20} className="group-hover:text-indigo-700" />
-        Add Task
+        {loading.newTask ? (
+          <div className="flex items-center gap-3">
+            <span className="loading loading-spinner loading-sm text-indigo-700"></span>
+            Adding Task
+          </div>
+        ) : (
+          <>
+            <CiCirclePlus size={20} className="group-hover:text-indigo-700" />
+            Add Task
+          </>
+        )}
       </button>
     </div>
   );

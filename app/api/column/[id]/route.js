@@ -3,13 +3,14 @@ import { NextResponse } from 'next/server';
 export const PATCH = async (req, context) => {
   try {
     const { params } = context;
-    const { title } = await req.json();
+    const { title, columnIndex } = await req.json();
     const response = await prisma.column.update({
       where: {
         id: +params.id,
       },
       data: {
         title,
+        columnIndex,
       },
     });
 

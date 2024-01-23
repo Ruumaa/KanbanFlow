@@ -49,7 +49,8 @@ const KanbanBoard = ({ user }) => {
       try {
         const response = await fetch('/api/column', { cache: 'no-store' });
         const result = await response.json();
-        setColumns(result?.data);
+        const filtered = result.data?.filter((col) => col.userId === user.id);
+        setColumns(filtered);
       } catch (error) {
         console.error('Error when getColumnData', error);
       }
@@ -71,7 +72,7 @@ const KanbanBoard = ({ user }) => {
     getColumnData();
     getTasksData();
     setUpdateFlag(false);
-  }, [updateFlag]);
+  }, [updateFlag, user.id]);
 
   // create column
   const createNewColumn = async () => {
@@ -88,8 +89,6 @@ const KanbanBoard = ({ user }) => {
       setUpdateFlag(true);
       setLoading(false);
     }
-    // const updatedColumns = [...columns, createdColumn];
-    // setColumns(updatedColumns);
   };
 
   const deleteColumn = async (id) => {
@@ -102,14 +101,6 @@ const KanbanBoard = ({ user }) => {
       setUpdateFlag(true);
       setLoading(false);
     }
-    // filtering columns with the except id that chosen
-
-    // const filteredColumns = columns.filter((col) => col.id !== id);
-    // setColumns(filteredColumns);
-    // router.refresh()
-
-    // const newTasks = tasks.filter((t) => t.columnId !== id);
-    // setTasks(newTasks);
   };
 
   // update column
@@ -123,12 +114,6 @@ const KanbanBoard = ({ user }) => {
       setLoading(false);
       setUpdateFlag(true);
     }
-
-    // const newColumn = columns.map((col) => {
-    //   if (col.id !== id) return col;
-    //   return { ...col, title };
-    // });
-    // setColumns(newColumn);
   };
 
   // handle drag
@@ -147,18 +132,12 @@ const KanbanBoard = ({ user }) => {
     setActiveTask(null);
 
     const { active, over } = event;
-    // console.log(active, over);
     if (!over) return;
 
     const activeColumnId = active.id;
     const overColumnId = over.id;
 
-    // console.log(activeColumnId, 'Idnya');
-    // console.log(overColumnId, 'idOvernya');
-
     if (activeColumnId === overColumnId) return;
-
-    // setUpdateFlag(true);
 
     // finding activeColumn index
     const activeColumnIndex = columns?.findIndex(
@@ -171,6 +150,15 @@ const KanbanBoard = ({ user }) => {
     );
     const overColumnIndexValue = columns[overColumnIndex].columnIndex;
 
+    setColumns((columns) => {
+      const activeColumnIndex = columns.findIndex(
+        (col) => col.id === activeColumnId
+      );
+      const overColumnIndex = columns.findIndex(
+        (col) => col.id === overColumnId
+      );
+      return arrayMove(columns, activeColumnIndex, overColumnIndex);
+    });
     await fetchUpdateColumn({
       id: activeColumnId,
       columnIndex: overColumnIndexValue,
@@ -179,23 +167,8 @@ const KanbanBoard = ({ user }) => {
       id: overColumnId,
       columnIndex: activeColumnIndexValue,
     });
-    // console.log(activeColumnIndexValue, 'Index yang aktif');
-    // console.log(overColumnIndexValue, 'Index overnya');
-    // const activeColumnIndex2 = columns.map(
-    //   (column) => {const index = column.id === activeColumnId;
-    //   if(index){}
-    // }
-    // );
-    // const overColumnIndex2 = columns.map(
-    //   (column) => column.id === overColumnId
-    // );
-    // console.log(activeColumnIndex2, '<<<<<<<<<');
-    // console.log(overColumnIndex2, '<<<<<<<<<');
     setUpdateFlag(true);
-    return arrayMove(columns, activeColumnIndexValue, overColumnIndexValue);
   };
-
-  // console.log(columns);
 
   const onDragOver = (event) => {
     const { active, over } = event;
@@ -260,13 +233,6 @@ const KanbanBoard = ({ user }) => {
       setUpdateFlag(true);
       setLoading(false);
     }
-
-    // const newTask = {
-    //   id: generateId(),
-    //   columnId,
-    //   content: `Task ${tasks.length + 1}`,
-    // };
-    // setTasks([...tasks, newTask]);
   };
 
   // delete task
@@ -280,9 +246,6 @@ const KanbanBoard = ({ user }) => {
       setUpdateFlag(true);
       setLoading(false);
     }
-
-    // const newTask = tasks.filter((task) => task.id !== id);
-    // setTasks(newTask);
   };
 
   // update task
@@ -296,11 +259,6 @@ const KanbanBoard = ({ user }) => {
       setLoading(false);
       setUpdateFlag(true);
     }
-    // const updatedTask = tasks.map((task) => {
-    //   if (task.id !== id) return task;
-    //   return { ...task, content };
-    // });
-    // setTasks(updatedTask);
   };
 
   return (

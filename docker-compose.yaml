@@ -1,0 +1,28 @@
+version: '3'
+
+networks:
+  app-tier:
+    driver: bridge
+
+services:
+  backend:
+    build: .
+    networks:
+      - app-tier
+    ports:
+      - '3000:3000'
+    environment:
+      - DATABASE_URL=postgresql://postgres:1234@${DB_HOST}:5432/kanban_app?schema=public
+    depends_on:
+      - db
+    volumes:
+      - ./generated:/app/generated
+
+  db:
+    image: postgres:15-alpine
+    ports:
+      - '5432:5432'
+    env_file:
+      - .env
+    networks:
+      - app-tier

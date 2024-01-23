@@ -7,9 +7,6 @@ export const GET = async () => {
       orderBy: {
         columnIndex: 'asc',
       },
-      // include: {
-      //   Task: true,
-      // },
     });
 
     return NextResponse.json(
